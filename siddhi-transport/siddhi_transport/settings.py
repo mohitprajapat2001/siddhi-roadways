@@ -45,6 +45,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
+    "http://localhost:5173",
 ]
 
 ROOT_URLCONF = "siddhi_transport.urls"
@@ -120,13 +121,42 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Cities Light
+# Cities Light Configuration
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]
+COUNTRY_SOURCES = ["IN"]
 CITIES_LIGHT_INCLUDE_COUNTRIES = ["IN"]
+CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL", "PPLL"]
 
 
 # REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+}
+
+# Logging Configuration
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} - {asctime} - {name} - {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": "debug.log",
+            "formatter": "verbose",
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console", "file"],
+        "level": "INFO",
+    },
 }
