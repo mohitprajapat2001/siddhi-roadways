@@ -32,7 +32,7 @@ class PrefixedUUIDField(models.CharField):
 
 class Invoice(TimeStampedModel):
     invoice_number = PrefixedUUIDField(unique=True)
-    truck_number = models.CharField(max_length=16)
+    truck_number = models.CharField(max_length=16, null=True, blank=True)
     to_pay = models.BooleanField(
         default=InvoiceChoices.NOT_PAID, choices=InvoiceChoices.STATUS_CHOICES
     )
@@ -59,7 +59,8 @@ class Invoice(TimeStampedModel):
 
 
 class Item(TitleDescriptionModel):
-    weight = models.PositiveIntegerField()
+    invoice = models.ForeignKey(Invoice, related_name="items", on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
@@ -67,17 +68,8 @@ class Item(TitleDescriptionModel):
 
     @property
     def freight(self):
-        return self.weight * self.price
+        return self.quantity * self.price
 
     class Meta:
         verbose_name_plural = "Items"
         ordering = ["title"]
-
-
-class InvoiceDetail(models.Model):
-    invoice = models.ForeignKey(
-        Invoice, on_delete=models.CASCADE, related_name="details"
-    )
-    items = models.ForeignKey(
-        "Item", on_delete=models.CASCADE, related_name="details_items"
-    )

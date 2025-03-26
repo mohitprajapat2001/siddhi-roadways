@@ -1,8 +1,7 @@
 from rest_framework import viewsets
-from invoices.models import Invoice, InvoiceDetail, Item
+from invoices.models import Invoice, Item
 from invoices.api.serializers import (
     InvoiceSerializer,
-    InvoiceDetailSerializer,
     ItemSerializer,
 )
 
@@ -10,11 +9,6 @@ from invoices.api.serializers import (
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
-
-
-class InvoiceDetailViewSet(viewsets.ModelViewSet):
-    queryset = InvoiceDetail.objects.all()
-    serializer_class = InvoiceDetailSerializer
 
 
 class ItemViewSet(viewsets.ModelViewSet):
