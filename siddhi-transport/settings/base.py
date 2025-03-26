@@ -1,4 +1,10 @@
+import os
 from pathlib import Path
+from dotenv import dotenv_values
+from utils.constants import Settings
+from dj_database_url import parse
+
+env = dotenv_values(".env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,34 +14,42 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-5sgahia!yd!#w9-2rn_qj_ikf^iy$-)5y*&*cop9f65i54ru@k"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ["*"]
-
+SECRET_KEY = env.get("SECRET_KEY")
 
 # Application definition
-
-INSTALLED_APPS = [
+DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cities_light",
-    "rest_framework",
-    "invoices",
-    "django_extensions",
-    "corsheaders",
 ]
 
+THIRD_PARTY_APPS = [
+    "rest_framework",
+    "django_extensions",
+    "cities_light",
+    "corsheaders",
+    "rest_framework_simplejwt",
+]
+
+PROJECT_APPS = ["invoices.apps.InvoicesConfig", "accounts.apps.AccountsConfig"]
+
+INSTALLED_APPS = PROJECT_APPS + THIRD_PARTY_APPS + DJANGO_APPS
+
+# Cities Light Configuration
+CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]
+COUNTRY_SOURCES = ["IN"]
+CITIES_LIGHT_INCLUDE_COUNTRIES = ["IN"]
+CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL", "PPLL"]
+
+
+# Middleware Configuration
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -43,19 +57,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "http://192.168.0.17:3000",
-]
-
-ROOT_URLCONF = "siddhi_transport.urls"
+# Urls Configuration
+ROOT_URLCONF = Settings.ROOT_URLCONF
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / Settings.TEMPLATES_URLS],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -68,23 +76,18 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "siddhi_transport.wsgi.application"
-
+WSGI_APPLICATION = Settings.WSGI_APPLICATION
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": parse(
+        env.get("DJANGO_DATABASE_URL"),
+    )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -103,38 +106,22 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
-
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
-USE_I18N = True
-
-USE_TZ = True
+LANGUAGE_CODE = Settings.LANGUAGE_CODE
+TIME_ZONE = Settings.TIME_ZONE
+USE_I18N = Settings.USE_I18N
+USE_TZ = Settings.USE_TZ
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = "static/"
+STATIC_URL = Settings.STATIC_URL
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, Settings.STATIC_FILES_DIRS),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Cities Light Configuration
-CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]
-COUNTRY_SOURCES = ["IN"]
-CITIES_LIGHT_INCLUDE_COUNTRIES = ["IN"]
-CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL", "PPLL"]
-
-
-# REST Framework
-REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
-}
+DEFAULT_AUTO_FIELD = Settings.DEFAULT_AUTO_FIELD
 
 # Logging Configuration
 LOGGING = {
@@ -161,4 +148,14 @@ LOGGING = {
         "handlers": ["console", "file"],
         "level": "INFO",
     },
+}
+
+# Pagination Configuration
+# =====================================================
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }

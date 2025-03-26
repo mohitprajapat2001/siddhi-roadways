@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from invoices.models import Invoice, Item
-from siddhi_transport.api.serializers import UserSerializer, CitySerializer
+from accounts.api.serializers import UserSerializer, CitySerializer
 from django.contrib.auth import get_user_model
 from cities_light.models import City
+from invoices.constants import ValidationErrorMessages
 
 User = get_user_model()
 
@@ -45,18 +46,22 @@ class InvoiceSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if self.initial_data.get("consignee") == self.initial_data.get("consignor"):
             raise serializers.ValidationError(
-                "Consignee and Consignor cannot be the same."
+                ValidationErrorMessages.CONSIGNOR_CONSIGNEE_NOT_SAME
             )
-        try:
-            User.objects.get(id=self.initial_data.get("consignee"))
-            User.objects.get(id=self.initial_data.get("consignor"))
-        except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid consignee or consignor.")
-        try:
-            City.objects.get(id=self.initial_data.get("source"))
-            City.objects.get(id=self.initial_data.get("destination"))
-        except City.DoesNotExist:
-            raise serializers.ValidationError("Invalid source or destination.")
+        if not User.objects.filter(id=self.initial_data.get("consignee")).exists():
+            raise serializers.ValidationError(
+                ValidationErrorMessages.CONSIGNEE_NOT_EMPTY
+            )
+        if not User.objects.filter(id=self.initial_data.get("consignor")).exists():
+            raise serializers.ValidationError(
+                ValidationErrorMessages.CONSIGNOR_NOT_EMPTY
+            )
+        if not City.objects.filter(id=self.initial_data.get("source")).exists():
+            raise serializers.ValidationError(ValidationErrorMessages.SOURCE_NOT_EMPTY)
+        if not City.objects.filter(id=self.initial_data.get("destination")).exists():
+            raise serializers.ValidationError(
+                ValidationErrorMessages.DESTINATION_NOT_EMPTY
+            )
         return super().validate(attrs)
 
     def create(self, validated_data):
