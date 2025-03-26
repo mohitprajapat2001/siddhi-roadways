@@ -2,7 +2,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class AuthService:
-    def __tokens_for_user(self, user) -> dict:
+    @staticmethod
+    def __tokens_for_user(user) -> dict:
         """generate tokens"""
         refresh = RefreshToken.for_user(user)
         return {
@@ -11,6 +12,6 @@ class AuthService:
         }
 
     @classmethod
-    def get_auth_tokens_for_user(cls, user) -> dict:
+    def get_auth_tokens_for_user(self, user) -> dict:
         """call private method to generate refresh and access token"""
-        return cls.__tokens_for_user(user)
+        return self.__tokens_for_user(user)

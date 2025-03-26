@@ -7,7 +7,6 @@ from rest_framework.serializers import (
     ValidationError,
 )
 from accounts.constants import FormValdationMessages
-from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 
 
@@ -32,10 +31,6 @@ class LoginSerializer(Serializer):
         if not get_user_model().objects.filter(username=value).exists():
             raise ValidationError(FormValdationMessages.USER_NOT_FOUND)
         return value
-
-    def validate_password(self, value):
-        """Validate Password"""
-        return validate_password(value)
 
     def save(self, validated_data):
         """Authenticate User"""

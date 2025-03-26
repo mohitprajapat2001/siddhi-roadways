@@ -1,4 +1,5 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from accounts.api.serializers import (
@@ -11,14 +12,14 @@ from cities_light.models import City
 from django.db.models import Q
 from utils.auth_service import AuthService
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from http import HTTPStatus
 
 
 class CityViewSet(ReadOnlyModelViewSet):
     queryset = City.objects.all()
     serializer_class = CitySerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def filter_queryset(self, queryset):
         q = self.request.query_params.get("q")
@@ -31,10 +32,10 @@ class CityViewSet(ReadOnlyModelViewSet):
         return super().filter_queryset(queryset)
 
 
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def filter_queryset(self, queryset):
         q = self.request.query_params.get("q")
@@ -64,5 +65,6 @@ class LoginApiView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save(validated_data=serializer.validated_data)
         return Response(
-            self.service_class.get_auth_tokens_for_user(user), status=HTTPStatus.OK
+            self.service_class().get_auth_tokens_for_user(user=user),
+            status=HTTPStatus.OK,
         )
