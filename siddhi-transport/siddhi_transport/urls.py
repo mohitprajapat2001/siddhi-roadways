@@ -16,8 +16,19 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework import routers
+from siddhi_transport.api.api import CityViewSet, UserViewSet
+from django.views.generic import RedirectView
+
+router = routers.DefaultRouter()
+router.register("cities", CityViewSet)
+router.register("users", UserViewSet)
+
 
 urlpatterns = [
+    path("", RedirectView.as_view(url="api/")),
     path("admin/", admin.site.urls),
+    path("api/", include("invoices.urls")),
+    path("api/", include(router.urls)),
 ]
