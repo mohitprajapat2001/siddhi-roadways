@@ -47,6 +47,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:5173",
     "http://localhost:3000",
+    "http://192.168.0.17:3000",
 ]
 
 ROOT_URLCONF = "siddhi_transport.urls"
